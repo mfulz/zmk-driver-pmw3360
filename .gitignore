@@ -1,7 +1,8 @@
 # Build artifacts
 build/
 build-*/
-zephyr/
+zephyr/*
+!zephyr/module.yml
 *.uf2
 *.bin
 *.hex
