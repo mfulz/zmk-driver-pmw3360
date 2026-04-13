@@ -43,7 +43,7 @@ jobs:
           ZEPHYR_SDK_INSTALL_DIR: /home/runner/work/zmk-driver-pmw3360/zmk-driver-pmw3360/zephyr-sdk-0.17.0
         run: |
           cd /tmp/zmk-workspace/zmk
-          west build -s app -d build/smoke -b nice_nano_v2 -- \
+          west build -s app -d build/smoke -b nice_nano//zmk -- \
             -DZMK_CONFIG="${GITHUB_WORKSPACE}/ci/smoke-config" \
             -DSHIELD=pmw3360_smoke \
             -DZMK_EXTRA_MODULES="${GITHUB_WORKSPACE}"

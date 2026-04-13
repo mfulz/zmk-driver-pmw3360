@@ -143,7 +143,7 @@ west zephyr-export
 
 ## Compatibility and scope
 
-- Validated against current ZMK `main` in a Zephyr 3.5 workspace.
+- Validated against current ZMK `main`, including the Zephyr 4.1 board naming scheme used in CI.
 - The runtime tuning behaviors currently assume one enabled PMW3360 device per
   build.
 - The driver itself does not require that limitation; it applies only to the
