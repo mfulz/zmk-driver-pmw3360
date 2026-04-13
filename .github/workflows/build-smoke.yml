@@ -37,6 +37,7 @@ jobs:
           west update
           west zephyr-export
           pip3 install -r app/scripts/requirements.txt
+          pip3 install -r zephyr/scripts/requirements.txt
 
       - name: Build smoke consumer
         env:
