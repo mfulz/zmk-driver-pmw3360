@@ -1,0 +1,7 @@
+file_format: "1"
+id: pmw3360_smoke
+name: PMW3360 Smoke
+type: shield
+features:
+  - keys
+  - pointer

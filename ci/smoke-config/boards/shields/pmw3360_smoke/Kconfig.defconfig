@@ -1,0 +1,9 @@
+# Copyright (c) 2026 Matthias Fulz
+# SPDX-License-Identifier: MIT
+
+if SHIELD_PMW3360_SMOKE
+
+config ZMK_KEYBOARD_NAME
+    default "PMW3360 Smoke"
+
+endif

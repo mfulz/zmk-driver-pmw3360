@@ -1,0 +1,5 @@
+# Copyright (c) 2026 Matthias Fulz
+# SPDX-License-Identifier: MIT
+
+config SHIELD_PMW3360_SMOKE
+    def_bool $(shields_list_contains,pmw3360_smoke)

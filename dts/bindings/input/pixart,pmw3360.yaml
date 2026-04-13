@@ -1,0 +1,115 @@
+# Copyright (c) 2025 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: |
+  Driver binding for the PixArt PMW3360 optical motion sensor.
+
+  The PMW3360 is a high-performance relative pointing sensor often used in mice
+  and custom trackball builds. In a ZMK context it can be used for USB and BLE
+  pointing devices. The sensor can either run from a dedicated motion interrupt
+  pin or in polling mode when no motion pin is wired.
+
+  For wireless BLE pointing devices the most important practical tuning knob is
+  `burst-accumulation-max-samples`. It limits how many internal PMW3360 motion
+  bursts may be combined into one HID report. Higher values reduce report rate
+  pressure on the BLE link at the cost of slightly coarser time granularity.
+
+compatible: "pixart,pmw3360"
+
+include: spi-device.yaml
+
+properties:
+  power-gpios:
+    type: phandle-array
+    description: |
+      Optional GPIO that switches external power to the PMW3360. Use this when
+      the sensor is behind a transistor, load switch, or other power gate and
+      should only be powered while a pointing layer is active.
+
+  irq-gpios:
+    type: phandle-array
+    description: |
+      Optional motion interrupt GPIO connected to the PMW3360 MOTION pin.
+      Providing this property enables interrupt-driven operation, which is the
+      recommended mode for low-latency pointing builds. If omitted, the driver
+      falls back to polling the sensor at `polling-interval`.
+
+  cpi:
+    type: int
+    default: 600
+    description: |
+      Cursor sensitivity in counts per inch. Higher CPI makes the pointer move
+      farther for the same physical movement. The PMW3360 stores CPI in 100-CPI
+      steps, so values are effectively quantized to multiples of 100. The
+      driver accepts values in the practical runtime range 100 to 12000 CPI.
+
+  rotate-90:
+    type: boolean
+    description: |
+      Rotate the sensor coordinate system by 90 degrees clockwise. Use this when
+      the PCB or sensor package is mounted rotated relative to the intended
+      pointer orientation.
+
+  rotate-180:
+    type: boolean
+    description: |
+      Rotate the sensor coordinate system by 180 degrees.
+
+  rotate-270:
+    type: boolean
+    description: |
+      Rotate the sensor coordinate system by 270 degrees clockwise.
+
+  angle-tune:
+    type: int
+    default: 0
+    description: |
+      Sensor angle tuning value written to the PMW3360 angle tuning register.
+      This can compensate for small mechanical skew in the sensor mounting.
+      Negative values rotate one way, positive values the other. A practical
+      tuning range is -30 to 30.
+
+  lift-height-3mm:
+    type: boolean
+    description: |
+      Configure a higher lift-off distance of approximately 3 mm instead of the
+      default 2 mm. This is mainly useful when the sensor or lens geometry makes
+      tracking stop too early during lift-off.
+
+  force-awake:
+    type: boolean
+    description: |
+      Keep the PMW3360 out of its internal rest mode. This is useful when an
+      external power gate already handles idle power and the build prioritizes
+      low wake latency over the PMW3360's own internal power saving behavior.
+
+  polling-interval:
+    type: int
+    default: 1000
+    description: |
+      Polling interval in microseconds when `irq-gpios` is not configured.
+      Lower values increase responsiveness and CPU/SPI activity. Higher values
+      reduce overhead but can make motion feel less immediate. Values should be
+      positive.
+
+  burst-accumulation-max-samples:
+    type: int
+    default: 12
+    description: |
+      Maximum number of PMW3360 motion bursts to accumulate into a single HID
+      report before the driver flushes the summed delta to the host.
+
+      A value of 1 disables burst accumulation and sends one host report per
+      burst. Higher values reduce the chance of BLE report backlog on fast
+      movement, but also make the time resolution of host-visible motion more
+      coarse. The driver clamps runtime values into the practical range 1 to 64.
+
+  invert-x:
+    type: boolean
+    description: |
+      Invert the X axis after all sensor rotation handling has been applied.
+
+  invert-y:
+    type: boolean
+    description: |
+      Invert the Y axis after all sensor rotation handling has been applied.

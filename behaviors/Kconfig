@@ -1,0 +1,36 @@
+menu "PMW3360 runtime behaviors"
+
+config ZMK_BEHAVIOR_PMW3360_RUNTIME_HOOKS
+    bool
+    default y
+    help
+      Build the weak runtime hook implementation used by the PMW3360 runtime
+      tuning behaviors.
+
+      Boards may override the hook with a strong symbol to trigger custom
+      status updates or visual feedback whenever CPI or burst accumulation is
+      changed at runtime.
+
+config ZMK_BEHAVIOR_PMW3360_CPI_CYCLE
+    bool "PMW3360 CPI cycle behavior"
+    default y
+    depends on INPUT_PIXART_PMW3360
+    help
+      Expose a directly usable ZMK behavior that cycles PMW3360 CPI values at
+      runtime.
+
+      This behavior assumes a single enabled PMW3360 device in the build and
+      is intended for keymap-level runtime tuning such as CPI up/down buttons.
+
+config ZMK_BEHAVIOR_PMW3360_BURST_ACCUMULATION_CYCLE
+    bool "PMW3360 burst accumulation cycle behavior"
+    default y
+    depends on INPUT_PIXART_PMW3360
+    help
+      Expose a directly usable ZMK behavior that cycles the PMW3360 burst
+      accumulation limit at runtime.
+
+      This is primarily useful on BLE pointing builds where one-burst-per-HID-
+      report can create visible report backlog under fast motion.
+
+endmenu

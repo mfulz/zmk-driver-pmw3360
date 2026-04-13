@@ -1,0 +1,14 @@
+zephyr_library()
+zephyr_library_include_directories(${APPLICATION_SOURCE_DIR}/include)
+
+zephyr_library_sources_ifdef(CONFIG_ZMK_BEHAVIOR_PMW3360_RUNTIME_HOOKS
+  pmw3360_runtime_hooks.c
+)
+
+zephyr_library_sources_ifdef(CONFIG_ZMK_BEHAVIOR_PMW3360_CPI_CYCLE
+  behavior_pmw3360_cpi_cycle.c
+)
+
+zephyr_library_sources_ifdef(CONFIG_ZMK_BEHAVIOR_PMW3360_BURST_ACCUMULATION_CYCLE
+  behavior_pmw3360_burst_accumulation_cycle.c
+)

@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2026 Matthias Fulz
+ * SPDX-License-Identifier: MIT
+ */
+
+/*
+ * Replace the SPI pinctrl, chip select, MOTION pin, and power gate GPIOs with
+ * values that match your board.
+ */
+
+&spi0 {
+    status = "okay";
+    cs-gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
+
+    pmw3360: pmw3360@0 {
+        compatible = "pixart,pmw3360";
+        status = "okay";
+        reg = <0>;
+        spi-max-frequency = <2000000>;
+
+        irq-gpios = <&gpio0 27 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        power-gpios = <&gpio0 28 GPIO_ACTIVE_HIGH>;
+
+        cpi = <300>;
+        burst-accumulation-max-samples = <12>;
+        force-awake;
+    };
+};
+
+/ {
+    pmw3360_listener: pmw3360_listener {
+        compatible = "zmk,input-listener";
+        device = <&pmw3360>;
+    };
+};

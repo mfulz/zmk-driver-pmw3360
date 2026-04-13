@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2026 Matthias Fulz
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <dt-bindings/zmk/matrix_transform.h>
+
+/ {
+    chosen {
+        zmk,kscan = &pmw3360_smoke_kscan;
+    };
+
+    pmw3360_smoke_kscan: pmw3360_smoke_kscan {
+        compatible = "zmk,kscan-mock";
+        columns = <1>;
+        rows = <1>;
+        events = <>;
+    };
+};
+
+&spi1 {
+    status = "okay";
+    cs-gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
+
+    pmw3360: pmw3360@0 {
+        compatible = "pixart,pmw3360";
+        reg = <0>;
+        status = "okay";
+        spi-max-frequency = <2000000>;
+
+        irq-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        power-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
+
+        cpi = <300>;
+        burst-accumulation-max-samples = <12>;
+        force-awake;
+    };
+};
+
+/ {
+    pmw3360_listener: pmw3360_listener {
+        compatible = "zmk,input-listener";
+        device = <&pmw3360>;
+    };
+};

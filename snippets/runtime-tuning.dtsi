@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2026 Matthias Fulz
+ * SPDX-License-Identifier: MIT
+ */
+
+/**
+ * @file runtime-tuning.dtsi
+ * @brief Minimal PMW3360 runtime tuning behavior snippet.
+ *
+ * Copy the relevant nodes into your keymap if you want directly usable runtime
+ * controls for CPI and burst accumulation.
+ *
+ * This snippet is intentionally conservative:
+ * - it only declares the four PMW3360 tuning behavior nodes
+ * - it does not assume any specific physical key position
+ * - it does not pull in board-specific feedback such as LEDs or GATT
+ */
+
+/ {
+    behaviors {
+        pmw_cpi_next: pmw_cpi_next {
+            compatible = "zmk,behavior-pmw3360-cpi-cycle";
+            #binding-cells = <0>;
+            next;
+            default-cpi = <300>;
+        };
+
+        pmw_cpi_prev: pmw_cpi_prev {
+            compatible = "zmk,behavior-pmw3360-cpi-cycle";
+            #binding-cells = <0>;
+            default-cpi = <300>;
+        };
+
+        pmw_burst_next: pmw_burst_next {
+            compatible = "zmk,behavior-pmw3360-burst-accumulation-cycle";
+            #binding-cells = <0>;
+            next;
+            default-max-samples = <12>;
+        };
+
+        pmw_burst_prev: pmw_burst_prev {
+            compatible = "zmk,behavior-pmw3360-burst-accumulation-cycle";
+            #binding-cells = <0>;
+            default-max-samples = <12>;
+        };
+    };
+};

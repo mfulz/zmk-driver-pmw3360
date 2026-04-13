@@ -1,0 +1,50 @@
+# Copyright (c) 2025 George Norton
+# Copyright (c) 2026 Matthias Fulz
+# SPDX-License-Identifier: MIT
+#
+# PMW3360 optical motion sensor driver configuration.
+
+menuconfig INPUT_PIXART_PMW3360
+    bool "PixArt PMW3360 optical motion sensor"
+    default y
+    select GPIO
+    select SPI
+    depends on INPUT
+    depends on DT_HAS_PIXART_PMW3360_ENABLED
+    help
+      Enable the PixArt PMW3360 relative pointing sensor driver.
+
+      The PMW3360 is commonly used in custom mice and trackball builds. This
+      driver supports both interrupt-driven operation via the MOTION pin and a
+      polling fallback when no motion interrupt is wired.
+
+config INPUT_PIXART_PMW3360_USE_OWN_THREAD
+    bool "Process PMW3360 work on a dedicated driver work queue"
+    default y
+    help
+      Run PMW3360 initialization and motion processing on a private work queue
+      instead of the shared system work queue.
+
+      This costs additional RAM for a dedicated stack but gives the pointing
+      path more isolation from unrelated work queue traffic, which can improve
+      responsiveness on BLE builds under load.
+
+config INPUT_PIXART_PMW3360_THREAD_PRIORITY
+    int "PMW3360 dedicated work queue priority"
+    depends on INPUT_PIXART_PMW3360_USE_OWN_THREAD
+    default 5
+    help
+      Thread priority used for the PMW3360 dedicated work queue.
+
+      Lower numeric values run with higher priority in Zephyr.
+
+config INPUT_PIXART_PMW3360_THREAD_STACK_SIZE
+    int "PMW3360 dedicated work queue stack size"
+    depends on INPUT_PIXART_PMW3360_USE_OWN_THREAD
+    default 768
+    help
+      Stack size reserved for the PMW3360 dedicated work queue thread.
+
+      Increase this only if debugging or future driver changes require more
+      stack space. The default is intentionally modest to keep the wireless RAM
+      footprint reasonable.

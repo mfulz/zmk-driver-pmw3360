@@ -1,0 +1,15 @@
+description: PMW3360 burst accumulation cycle behavior
+
+compatible: "zmk,behavior-pmw3360-burst-accumulation-cycle"
+
+include: zero_param.yaml
+
+properties:
+  next:
+    type: boolean
+    description: If present, cycles burst accumulation forward; otherwise cycles backward.
+
+  default-max-samples:
+    type: int
+    default: 12
+    description: Initial burst accumulation limit assumed by the behavior at boot.

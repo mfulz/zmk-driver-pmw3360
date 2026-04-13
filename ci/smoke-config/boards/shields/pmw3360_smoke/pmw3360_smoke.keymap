@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2026 Matthias Fulz
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+
+/ {
+    behaviors {
+        pmw_cpi_next: pmw_cpi_next {
+            compatible = "zmk,behavior-pmw3360-cpi-cycle";
+            #binding-cells = <0>;
+            next;
+            default-cpi = <300>;
+        };
+
+        pmw_cpi_prev: pmw_cpi_prev {
+            compatible = "zmk,behavior-pmw3360-cpi-cycle";
+            #binding-cells = <0>;
+            default-cpi = <300>;
+        };
+
+        pmw_burst_next: pmw_burst_next {
+            compatible = "zmk,behavior-pmw3360-burst-accumulation-cycle";
+            #binding-cells = <0>;
+            next;
+            default-max-samples = <12>;
+        };
+
+        pmw_burst_prev: pmw_burst_prev {
+            compatible = "zmk,behavior-pmw3360-burst-accumulation-cycle";
+            #binding-cells = <0>;
+            default-max-samples = <12>;
+        };
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {
+            bindings = <&pmw_cpi_next>;
+        };
+    };
+};

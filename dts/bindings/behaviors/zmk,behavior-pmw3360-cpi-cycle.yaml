@@ -1,0 +1,15 @@
+description: PMW3360 CPI cycle behavior
+
+compatible: "zmk,behavior-pmw3360-cpi-cycle"
+
+include: zero_param.yaml
+
+properties:
+  next:
+    type: boolean
+    description: If present, cycles CPI forward; otherwise cycles backward.
+
+  default-cpi:
+    type: int
+    default: 400
+    description: Initial CPI value assumed by the behavior at boot.
