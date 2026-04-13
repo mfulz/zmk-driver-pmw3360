@@ -112,8 +112,8 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    - name: your-account
-      url-base: https://github.com/your-account
+    - name: mfulz
+      url-base: https://github.com/mfulz
 
   projects:
     - name: zmk
@@ -122,7 +122,7 @@ manifest:
       import: app/west.yml
 
     - name: zmk-driver-pmw3360
-      remote: your-account
+      remote: mfulz
       revision: main
 
   self:
@@ -502,7 +502,7 @@ The exact build command depends on your ZMK configuration repository. A typical
 workflow looks like this:
 
 ```sh
-west build -s zmk/app -b nice_nano_v2 -- -DSHIELD=your_keyboard_right
+west build -s zmk/app -b nice_nano//zmk -- -DSHIELD=your_keyboard_right
 ```
 
 The important part is that the module is present in the workspace and imported
