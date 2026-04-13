@@ -33,16 +33,17 @@ jobs:
           cd /tmp/zmk-workspace
           git clone --depth 1 https://github.com/zmkfirmware/zmk
           west init -l zmk/app
+          cd zmk
           west update
           west zephyr-export
-          pip3 install -r zmk/app/scripts/requirements.txt
+          pip3 install -r app/scripts/requirements.txt
 
       - name: Build smoke consumer
         env:
           ZEPHYR_SDK_INSTALL_DIR: /home/runner/work/zmk-driver-pmw3360/zmk-driver-pmw3360/zephyr-sdk-0.17.0
         run: |
-          cd /tmp/zmk-workspace
-          west build -s zmk/app -d build/smoke -b nice_nano_v2 -- \
+          cd /tmp/zmk-workspace/zmk
+          west build -s app -d build/smoke -b nice_nano_v2 -- \
             -DZMK_CONFIG="${GITHUB_WORKSPACE}/ci/smoke-config" \
             -DSHIELD=pmw3360_smoke \
             -DZMK_EXTRA_MODULES="${GITHUB_WORKSPACE}"
