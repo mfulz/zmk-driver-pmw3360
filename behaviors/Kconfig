@@ -11,6 +11,18 @@ config ZMK_BEHAVIOR_PMW3360_RUNTIME_HOOKS
       status updates or visual feedback whenever CPI or burst accumulation is
       changed at runtime.
 
+config ZMK_BEHAVIOR_PMW3360_RUNTIME_PERSISTENCE
+    bool
+    default y
+    depends on INPUT_PIXART_PMW3360 && SETTINGS
+    help
+      Enable PMW3360 runtime tuning persistence through Zephyr settings.
+
+      This stores and restores the currently selected CPI and burst
+      accumulation values for the convenience behaviors shipped by this
+      module. Persisted values are restored after boot and after firmware
+      reflash as long as the keyboard settings storage is preserved.
+
 config ZMK_BEHAVIOR_PMW3360_CPI_CYCLE
     bool "PMW3360 CPI cycle behavior"
     default y
@@ -32,5 +44,18 @@ config ZMK_BEHAVIOR_PMW3360_BURST_ACCUMULATION_CYCLE
 
       This is primarily useful on BLE pointing builds where one-burst-per-HID-
       report can create visible report backlog under fast motion.
+
+config ZMK_BEHAVIOR_PMW3360_SAVE_SETTINGS
+    bool "PMW3360 save runtime settings behavior"
+    default y
+    depends on INPUT_PIXART_PMW3360 && SETTINGS
+    select ZMK_BEHAVIOR_PMW3360_RUNTIME_PERSISTENCE
+    help
+      Expose a directly usable ZMK behavior that saves the current PMW3360
+      runtime CPI and burst accumulation values to persistent settings.
+
+      This is intended for keymaps that want an explicit "commit current PMW
+      tuning" action instead of writing to flash on every CPI or burst
+      accumulation change.
 
 endmenu

@@ -1,0 +1,5 @@
+description: PMW3360 save runtime settings behavior
+
+compatible: "zmk,behavior-pmw3360-save-settings"
+
+include: zero_param.yaml

@@ -82,6 +82,70 @@ uint8_t zmk_behavior_pmw3360_get_burst_accumulation_max_samples_for_device(
     const struct device *pmw, uint8_t fallback_max_samples);
 
 /**
+ * Apply one explicit CPI value and synchronize the runtime behavior cache.
+ *
+ * This helper exists for integrations that need to restore or seed PMW3360
+ * runtime state outside the normal NEXT/PREV key press flow. It updates both
+ * the hardware driver and the in-memory behavior cache so later cycle steps
+ * continue from the restored value instead of reverting to the devicetree
+ * default.
+ *
+ * @param pmw PMW3360 device instance to update.
+ * @param cpi Requested CPI in counts per inch.
+ * @param default_cpi Default CPI to remember for this device if the runtime
+ *                    state slot must be created on first use.
+ *
+ * @retval 0 The CPI value was accepted and cached.
+ * @retval -ENODEV `pmw` was missing or not ready.
+ * @retval -ENOMEM No free runtime state slot was available.
+ * @retval negative errno The underlying PMW3360 runtime setter rejected the
+ *         request.
+ */
+int zmk_behavior_pmw3360_set_cpi_for_device(const struct device *pmw, uint16_t cpi,
+                                            uint16_t default_cpi);
+
+/**
+ * Apply one explicit burst accumulation value and synchronize the behavior
+ * cache.
+ *
+ * This mirrors `zmk_behavior_pmw3360_set_cpi_for_device()` for the PMW3360
+ * burst accumulation limit. It is primarily intended for persistence restore
+ * or other one-shot management actions that should not walk through the normal
+ * preset cycle one step at a time.
+ *
+ * @param pmw PMW3360 device instance to update.
+ * @param max_samples Requested maximum number of PMW3360 motion bursts that
+ *                    may be merged into one HID report.
+ * @param default_max_samples Default value to remember if the runtime state
+ *                            slot must be created on first use.
+ *
+ * @retval 0 The burst accumulation value was accepted and cached.
+ * @retval -ENODEV `pmw` was missing or not ready.
+ * @retval -ENOMEM No free runtime state slot was available.
+ * @retval negative errno The underlying PMW3360 runtime setter rejected the
+ *         request.
+ */
+int zmk_behavior_pmw3360_set_burst_accumulation_max_samples_for_device(
+    const struct device *pmw, uint8_t max_samples, uint8_t default_max_samples);
+
+/**
+ * Persist the current runtime PMW3360 tuning values to Zephyr settings.
+ *
+ * The saved data currently includes the user-selected CPI and burst
+ * accumulation limit for the single PMW3360 device handled by the convenience
+ * behaviors. Calling this function does not change the live device state; it
+ * only stores the current values so they can be restored on the next boot.
+ *
+ * @param pmw PMW3360 device instance whose current runtime settings should be
+ *            stored persistently.
+ *
+ * @retval 0 The settings blob was written successfully.
+ * @retval -ENODEV `pmw` was missing or not ready.
+ * @retval negative errno Saving to persistent settings failed.
+ */
+int zmk_pmw3360_save_runtime_settings(const struct device *pmw);
+
+/**
  * Optional board-level runtime tuning hook.
  *
  * The PMW3360 runtime tuning behaviors call this hook after a setting change

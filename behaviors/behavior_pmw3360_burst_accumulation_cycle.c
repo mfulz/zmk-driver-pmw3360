@@ -32,7 +32,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 
-static const uint8_t burst_accumulation_steps[] = {1, 4, 6, 12, 24, 48};
+static const uint8_t burst_accumulation_steps[] = {1, 4, 6, 12, 24, 48, 64, 96, 128};
 
 struct behavior_pmw3360_burst_accumulation_cycle_config {
     bool next;
@@ -50,6 +50,24 @@ struct pmw3360_burst_accumulation_state_entry {
 
 K_MUTEX_DEFINE(pmw3360_burst_accumulation_state_mutex);
 static struct pmw3360_burst_accumulation_state_entry pmw3360_burst_accumulation_states[4];
+
+static void pmw3360_burst_accumulation_apply_work_handler(struct k_work *work);
+
+/**
+ * Normalize one burst accumulation value into the driver's supported range.
+ *
+ * The PMW3360 runtime setter clamps burst accumulation to a practical minimum
+ * of 1 and a configured maximum. The behavior cache mirrors that normalization
+ * so later preset cycling starts from the effective runtime value instead of an
+ * out-of-range request.
+ *
+ * @param max_samples Requested burst accumulation limit.
+ *
+ * @return Value clamped into the supported runtime range.
+ */
+static uint8_t pmw3360_burst_accumulation_normalize_cached_value(uint8_t max_samples) {
+    return CLAMP(max_samples, 1, 128);
+}
 
 /**
  * Resolve the first enabled PMW3360 device from devicetree.
@@ -113,6 +131,45 @@ uint8_t zmk_behavior_pmw3360_get_burst_accumulation_max_samples_for_device(
     }
     k_mutex_unlock(&pmw3360_burst_accumulation_state_mutex);
     return max_samples;
+}
+
+int zmk_behavior_pmw3360_set_burst_accumulation_max_samples_for_device(
+    const struct device *pmw, uint8_t max_samples, uint8_t default_max_samples) {
+    if (!pmw || !device_is_ready(pmw)) {
+        return -ENODEV;
+    }
+
+    const uint8_t normalized_max_samples =
+        pmw3360_burst_accumulation_normalize_cached_value(max_samples);
+
+    k_mutex_lock(&pmw3360_burst_accumulation_state_mutex, K_FOREVER);
+    struct pmw3360_burst_accumulation_state_entry *state =
+        pmw3360_burst_accumulation_state_get_or_create(pmw, default_max_samples);
+    if (!state) {
+        k_mutex_unlock(&pmw3360_burst_accumulation_state_mutex);
+        return -ENOMEM;
+    }
+
+    if (!state->work_inited) {
+        k_work_init(&state->apply_work, pmw3360_burst_accumulation_apply_work_handler);
+        state->work_inited = true;
+    }
+    k_mutex_unlock(&pmw3360_burst_accumulation_state_mutex);
+
+    const int rc =
+        zmk_driver_pmw3360_set_burst_accumulation_max_samples(pmw, normalized_max_samples);
+    if (rc < 0) {
+        return rc;
+    }
+
+    k_mutex_lock(&pmw3360_burst_accumulation_state_mutex, K_FOREVER);
+    state->max_samples = normalized_max_samples;
+    k_mutex_unlock(&pmw3360_burst_accumulation_state_mutex);
+
+    LOG_INF("PMW3360 burst accumulation restored/set explicitly: %u", normalized_max_samples);
+    zmk_pmw3360_runtime_setting_changed(pmw, ZMK_PMW3360_RUNTIME_SETTING_BURST_ACCUMULATION,
+                                        normalized_max_samples);
+    return 0;
 }
 
 /**

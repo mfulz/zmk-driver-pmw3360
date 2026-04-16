@@ -58,6 +58,34 @@ struct pmw3360_cpi_state_entry {
 K_MUTEX_DEFINE(pmw3360_cpi_state_mutex);
 static struct pmw3360_cpi_state_entry pmw3360_cpi_states[4];
 
+static void pmw3360_cpi_apply_work_handler(struct k_work *work);
+
+/**
+ * Normalize one CPI value into the PMW3360 driver's practical runtime range.
+ *
+ * The public PMW3360 driver setter rounds CPI to 100-step increments and
+ * clamps it into the sensor's supported range. The behavior cache must mirror
+ * that normalization so status consumers and later cycle steps stay in sync
+ * with the value that was actually accepted by the driver.
+ *
+ * @param cpi Requested user-facing CPI value.
+ *
+ * @return CPI normalized to a 100-step value in the range 100..12000.
+ */
+static uint16_t pmw3360_cpi_normalize_cached_value(uint16_t cpi) {
+    if (cpi < 100) {
+        cpi = 100;
+    }
+
+    cpi = (uint16_t)((cpi / 100u) * 100u);
+
+    if (cpi > 12000) {
+        cpi = 12000;
+    }
+
+    return cpi;
+}
+
 /**
  * Resolve the first enabled PMW3360 device from devicetree.
  *
@@ -127,6 +155,41 @@ uint16_t zmk_behavior_pmw3360_get_cpi_for_device(const struct device *pmw, uint1
     }
     k_mutex_unlock(&pmw3360_cpi_state_mutex);
     return cpi;
+}
+
+int zmk_behavior_pmw3360_set_cpi_for_device(const struct device *pmw, uint16_t cpi,
+                                            uint16_t default_cpi) {
+    if (!pmw || !device_is_ready(pmw)) {
+        return -ENODEV;
+    }
+
+    const uint16_t normalized_cpi = pmw3360_cpi_normalize_cached_value(cpi);
+
+    k_mutex_lock(&pmw3360_cpi_state_mutex, K_FOREVER);
+    struct pmw3360_cpi_state_entry *state = pmw3360_cpi_state_get_or_create(pmw, default_cpi);
+    if (!state) {
+        k_mutex_unlock(&pmw3360_cpi_state_mutex);
+        return -ENOMEM;
+    }
+
+    if (!state->work_inited) {
+        k_work_init(&state->apply_work, pmw3360_cpi_apply_work_handler);
+        state->work_inited = true;
+    }
+    k_mutex_unlock(&pmw3360_cpi_state_mutex);
+
+    const int rc = zmk_driver_pmw3360_set_cpi(pmw, normalized_cpi);
+    if (rc < 0) {
+        return rc;
+    }
+
+    k_mutex_lock(&pmw3360_cpi_state_mutex, K_FOREVER);
+    state->cpi = normalized_cpi;
+    k_mutex_unlock(&pmw3360_cpi_state_mutex);
+
+    LOG_INF("PMW3360 CPI restored/set explicitly: %u", normalized_cpi);
+    zmk_pmw3360_runtime_setting_changed(pmw, ZMK_PMW3360_RUNTIME_SETTING_CPI, normalized_cpi);
+    return 0;
 }
 
 /**
